@@ -1,7 +1,6 @@
 from direct.gui.OnscreenText import OnscreenText
 from direct.showbase.ShowBase import ShowBase
-from numpy.lib import math
-from panda3d.core import ShaderTerrainMesh, Shader, load_prc_file_data, TextNode, LineSegs, deg2Rad, NodePath
+from panda3d.core import ShaderTerrainMesh, Shader, load_prc_file_data, LineSegs
 from panda3d.core import SamplerState
 import sys
 import Coordinates as sig
@@ -51,9 +50,7 @@ class ShaderTerrainDemo(ShowBase):
         self.azimutPlat = float(azPlat)
         self.name = name
 
-        # print('latitud:', self.latitudePlataform, ' longitud:', self.longitudePlataform)
         self.terrain_node = ShaderTerrainMesh()  # crear el terreno
-
         self.altitudePlataform, self.cell = sig.latLon2AltCell(lon=self.longitudePlataform, lat=self.latitudePlataform)
         self.altitudeObj, _ = sig.latLon2AltCell(lon=self.longitudeObj, lat=self.latitudeObj)
         print('Plataforma: ', self.latitudePlataform, self.longitudePlataform, self.altitudePlataform)
@@ -61,7 +58,6 @@ class ShaderTerrainDemo(ShowBase):
         print('Celda: ', self.cell)
         nameFile = self.cell[:-4]
         self.mde_path = 'img/ASTER-GDEM-BOLIVIA/Hm/' + nameFile + '.bmp'
-        # self.mde_path = 'img/ASTER-GDEM-BOLIVIA/ASTGTM2_S18W067_dem.bmp'
 
         heightfield = self.loader.loadTexture(self.mde_path)  # cargar MDE
         heightfield.wrap_u = SamplerState.WM_clamp
@@ -90,12 +86,10 @@ class ShaderTerrainDemo(ShowBase):
         grass_tex.set_anisotropic_degree(16)
         self.terrain.set_texture(grass_tex)
 
-        # self.maxdistance = 300
-        # self.camLens.setFar(self.maxdistance)  # setear distancia lejana
+        self.maxdistance = 300
+        self.camLens.setFar(self.maxdistance)  # setear distancia lejana
         self.camLens.setNear(0.1)
         self.camLens.set_fov(90)  # setear campo de vision
-
-
 
         x_tiff, y_tiff = sig.latLonCell2XY(lon=self.longitudePlataform, lat=self.latitudePlataform, cell=self.cell)
         x_render, y_render = sig.XYtiff2XYrender(x_tiff=x_tiff, y_tiff=y_tiff)
@@ -111,9 +105,6 @@ class ShaderTerrainDemo(ShowBase):
         y_objetive = self.scaleXY - x_render_obj
         z_objetive = sig.altitude2Z(self.altitudeObj)
 
-        # x_missile = x_objetive
-        # y_missile = y_objetive
-        # z_missile = z_objetive
         self.missile.setPos(x_missile, y_missile, z_missile)  # invertido
         self.missile.reparentTo(self.render)
         self.missile.setScale(1, 1, 1)
@@ -122,11 +113,10 @@ class ShaderTerrainDemo(ShowBase):
         self.objetive.reparentTo(self.render)
         self.objetive.setScale(10, 10, 100)
         print('posObjetivo: ', x_objetive, y_objetive, z_objetive)
-        pointsXYZ, pointslatlonalt,pointsXY, distancesTerrain, elevationsTerrain = sig.getTrajectory(latPlatform=self.latitudePlataform, lonPlatform=self.longitudePlataform,
-                                   latObjetive=self.latitudeObj, lonObjetive=self.longitudeObj,
-                                   maxPoints=30, azimutPlat=azPlat)
-        # print((points))
-        # self.trajectory = self.drawLine(x_missile, y_missile, z_missile, x_objetive, y_objetive, z_objetive)
+        pointsXYZ, pointslatlonalt, pointsXY, distancesTerrain, elevationsTerrain = sig.getTrajectory(
+            latPlatform=self.latitudePlataform, lonPlatform=self.longitudePlataform,
+            latObjetive=self.latitudeObj, lonObjetive=self.longitudeObj,
+            maxPoints=30, azimutPlat=azPlat)
         self.trajectory = self.drawTrajectory(pointsXYZ)
         self.trajectoryNode = self.render.attachNewNode(self.trajectory)
         base.cam.setPos(x_missile, y_missile - 5, z_missile + 5)
@@ -135,23 +125,16 @@ class ShaderTerrainDemo(ShowBase):
         OnscreenText(text='Presione Esc para salir', pos=(-1, 0.95), scale=0.06)
         # base.cam.setHpr(94.8996, -16.6549, 1.55508)
         # render.clearFog()
-        # data = sig.calcular(latPlataforma=self.latitudePlataform, lonPlataforma=self.longitudePlataform,
-        #                     latObjetivo=self.latitudeObj, lonObjetivo=self.longitudeObj)
-        # print(data)
 
         # teclas
         self.accept("f3", self.toggleWireframe)
         self.accept("escape", self.callReport, [pointslatlonalt, pointsXY, distancesTerrain, elevationsTerrain])
 
     def callReport(self, XYZ, XY, dis, ele):
-        # base.closeWindow(base.win)
-        # print(ele)
-        # print(dis)
         reporte(ptXYZ=XYZ, ptXY=XY, dis=dis, elev=ele, azimut=self.azimutPlat,
                 latPlat=self.latitudePlataform, lonPlat=self.longitudePlataform,
                 latObj=self.latitudeObj, lonObj=self.longitudeObj, name=self.name)
         sys.exit()
-        # base.active_win(base.win)
 
     def drawTrajectory(self, points, color=(255, 255, 255, 1)):
         # print(points)
@@ -165,6 +148,7 @@ class ShaderTerrainDemo(ShowBase):
 
         param = line.create()
         return param
+
     # def drawLine(self, x0, y0, z0, x1, y1, z1, color=(0, 0, 255, 1)):
     #     line = LineSegs()
     #     line.setColor(color)

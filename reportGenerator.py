@@ -1,14 +1,12 @@
 import datetime
+import os
 import time
-from datetime import date
-
-from reportlab.lib.pagesizes import A4, letter
+from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 import staticmaps
 from staticmaps import Line, Area
 import matplotlib.pyplot as plt
 import Coordinates
-import sys
 
 
 def generateMap(latPlat, lonPlat, latObj, lonObj, azimut, name):
@@ -49,18 +47,16 @@ def generateMap(latPlat, lonPlat, latObj, lonObj, azimut, name):
     context.add_object(lineAzimutRight)
     context.add_object(area)
 
-    context.add_object(staticmaps.ImageMarker(center2, 'dianatiny.png', 20, 20))
+    context.add_object(staticmaps.ImageMarker(center2, 'img/Images/dianatiny.png', 20, 20))
     context.add_object(staticmaps.Marker(center1, color=staticmaps.parse_color("#3f92cf"), size=20))
 
     # image = context.render_pillow(40000, 60000)
     image = context.render_pillow(1500, 850)
-    image.save("reports/" + name + "_map.png")
+    os.makedirs('reports/' + name, exist_ok=True)
+    image.save("reports/" + name + '/' + name + "_map.png")
 
-
-# generateMap(-17.383694116678157, -66.15700687603821, -17.3836941166781, -66.157006876038, 0)
 
 def generateGraphXY(XY, dist, elev, name):
-    # print(XY)
     x = [i[0] for i in XY]
     y = [i[1] for i in XY]
     plt.plot(x, y)
@@ -68,28 +64,19 @@ def generateGraphXY(XY, dist, elev, name):
     plt.fill_between(dist, elev, color="#ffd8b6")
     ejeXini, ejeXend = min(dist), max(dist)
     ejeYini, ejeYend = min(y), max(y)
-    # print(ejeXini, ejeXend)
-    # print(ejeYini, ejeYend)
     plt.ylabel('Altura (m.s.n.m)')
     plt.xlabel('Distancia (m.)')
-    # print(x)
-    # print(x[y.index(max(y))])
-    # print(max(y))
     plt.annotate('Altura Maxima Aproximada\n' + "Distancia: " + str(round(x[y.index(max(y))])) +
                  " mts.\nAltura: " + str(round(max(y))) + " mts.",
                  xy=(x[y.index(max(y))], max(y)), xytext=(x[y.index(max(y))] - 500, max(y) + 500),
-                 arrowprops=dict(facecolor='black', shrink=0.01),
-                 )
+                 arrowprops=dict(facecolor='black', shrink=0.01))
     plt.annotate('Impacto Aproximado\n' + "Distancia: " + str(round(x[-1])) +
                  " mts.\nAltura: " + str(round(y[-1])) + " mts.",
                  xy=(x[-1], y[-1]), xytext=(x[-1] - 500, y[-1] - 500),
-                 arrowprops=dict(facecolor='black' ),
-                 )
-
+                 arrowprops=dict(facecolor='black'))
     plt.axis([ejeXini - 100, ejeXend + 100, ejeYini - 500, ejeYend + 500])
-    # fig = plt.gcf()
-    # fig.set_size_inches(4, 4)
-    plt.savefig("reports/" + name + "_xy.png")
+    os.makedirs('reports/' + name, exist_ok=True)
+    plt.savefig("reports/" + name + '/' + name +"_xy.png")
 
 
 # def generateGraphXYZ(XYZ):
@@ -109,15 +96,15 @@ def reporte(ptXYZ, ptXY, dis, elev, name, latPlat, lonPlat, latObj, lonObj, azim
     w, h = letter
     generateGraphXY(ptXY, dis, elev, name)
     generateMap(latPlat, lonPlat, latObj, lonObj, azimut, name)
-
-    c = canvas.Canvas("reports/" + name + ".pdf", pagesize=letter)
+    os.makedirs('reports/' + name, exist_ok=True)
+    c = canvas.Canvas("reports/" + name + '/' + name + ".pdf", pagesize=letter)
     c.setFont("Times-Bold", 18)
     # print(c.getAvailableFonts())
     c.drawString(margen + 200, h - margen, "REPORTE")
     c.setFont("Times-Bold", 12)
 
     c.drawString(margen + 160, h - margen - 20,
-                 "Fecha y Hora: " + str(time.strftime("%x")) + '  ' + str(time.strftime("%X")))
+                 "Fecha y Hora: " + str(datetime.datetime.now().strftime('%d/%m/%Y')) + '  ' + str(time.strftime("%X")))
     c.drawImage("img/Images/EMI.PNG", 431, h - 90, width=100, height=50)
     c.setFont("Times-Roman", 12)
     c.drawString(margen + 230 + 31, h - margen - 40, "Misil: " + name)
@@ -126,7 +113,7 @@ def reporte(ptXYZ, ptXY, dis, elev, name, latPlat, lonPlat, latObj, lonObj, azim
     c.drawString(margen + 31, h - margen - 80, "Longitud Plataforma: " + str(lonPlat))
     c.drawString(margen + 230 + 31, h - margen - 60, "Latitud Objetivo: " + str(latObj))
     c.drawString(margen + 230 + 31, h - margen - 80, "Longitud Objetivo: " + str(lonObj))
-    c.drawImage("reports/" + name + "_map.png", margen + 31, h - margen - 340, width=450, height=250)
+    c.drawImage("reports/" + name + '/' + name + "_map.png", margen + 31, h - margen - 340, width=450, height=250)
     espacePreTable = 91
     x_table1 = [
         espacePreTable + margen,
@@ -146,7 +133,7 @@ def reporte(ptXYZ, ptXY, dis, elev, name, latPlat, lonPlat, latObj, lonObj, azim
         c.drawString(espacePreTable + margen + 140, margen + 332 - (11 * i), str(cor[1]))
         c.drawString(espacePreTable + margen + 270, margen + 332 - (11 * i), str(round(cor[2], 4)))
     c.showPage()
-    # nueva hoja//////////////////////////////////////
+    # /////////////////////////////nueva hoja//////////////////////////////////////
     c.setFont("Times-Bold", 18)
     c.drawString(margen + 200, h - margen, "REPORTE")
     c.setFont("Times-Bold", 12)
@@ -161,7 +148,7 @@ def reporte(ptXYZ, ptXY, dis, elev, name, latPlat, lonPlat, latObj, lonObj, azim
     c.drawString(margen + 31, h - margen - 80, "Longitud Plataforma: " + str(lonPlat))
     c.drawString(margen + 230 + 31, h - margen - 60, "Latitud Objetivo: " + str(latObj))
     c.drawString(margen + 230 + 31, h - margen - 80, "Longitud Objetivo: " + str(lonObj))
-    c.drawImage("reports/" + name + "_xy.png", margen + 31, h - margen - 340, width=450, height=250)
+    c.drawImage("reports/" + name + '/' + name + "_xy.png", margen + 31, h - margen - 340, width=450, height=250)
     espacePreTable = 126
     x_table2 = [
         espacePreTable + margen,
@@ -175,8 +162,8 @@ def reporte(ptXYZ, ptXY, dis, elev, name, latPlat, lonPlat, latObj, lonObj, azim
     c.drawString(espacePreTable + margen + 170, margen + 343, "ALTURA")
     c.setFont("Helvetica", 10)
     for i, cor in enumerate(ptXY):
-        c.drawString(espacePreTable + margen + 10, margen + 332 - (11 * i), str(cor[0]))
-        c.drawString(espacePreTable + margen + 140, margen + 332 - (11 * i), str(cor[1]))
+        c.drawString(espacePreTable + margen + 40, margen + 332 - (11 * i), str(cor[0]))
+        c.drawString(espacePreTable + margen + 170, margen + 332 - (11 * i), str(round(cor[1], 4)))
 
     c.showPage()
     c.save()

@@ -30,4 +30,14 @@ def getTexture(coor):
         return 'Valle'
 
 
-print(getTexture('S18W064'))
+# print(getTexture('S18W064'))
+
+#Es necesario importar las depencendias necesarias
+from datetime import date
+from datetime import datetime
+
+now = datetime.now()
+format = now.strftime('%d/%m/%Y')
+print(format)
+
+
