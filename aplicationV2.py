@@ -1,9 +1,12 @@
+from direct.gui.DirectDialog import DirectDialog
 from direct.gui.OnscreenText import OnscreenText
 from direct.showbase.ShowBase import ShowBase
+from direct.task.TaskManagerGlobal import taskMgr
 from panda3d.core import ShaderTerrainMesh, Shader, load_prc_file_data, LineSegs
 from panda3d.core import SamplerState
 import sys
 import Coordinates as sig
+
 from reportGenerator import reporte
 
 
@@ -113,22 +116,48 @@ class ShaderTerrainDemo(ShowBase):
         self.objetive.reparentTo(self.render)
         self.objetive.setScale(10, 10, 100)
         print('posObjetivo: ', x_objetive, y_objetive, z_objetive)
+
         pointsXYZ, pointslatlonalt, pointsXY, distancesTerrain, elevationsTerrain = sig.getTrajectory(
             latPlatform=self.latitudePlataform, lonPlatform=self.longitudePlataform,
             latObjetive=self.latitudeObj, lonObjetive=self.longitudeObj,
             maxPoints=30, azimutPlat=azPlat)
-        self.trajectory = self.drawTrajectory(pointsXYZ)
-        self.trajectoryNode = self.render.attachNewNode(self.trajectory)
+
+        # self.drawTrajectory(pointsXYZ)
+        # self.trajectory = self.drawTrajectory(pointsXYZ)
+        # self.trajectoryNode = self.render.attachNewNode(self.trajectory)
         base.cam.setPos(x_missile, y_missile - 5, z_missile + 5)
         base.cam.setP(-45)
         # print(base.cam.getHpr())
-        OnscreenText(text='Presione Esc para salir', pos=(-1, 0.95), scale=0.06)
+        OnscreenText(text='Presione Esc para finalizar', pos=(-1, 0.95), scale=0.06)
+        OnscreenText(text='Presione D para la trayectoria', pos=(-0.95, 0.90), scale=0.06)
         # base.cam.setHpr(94.8996, -16.6549, 1.55508)
         # render.clearFog()
 
         # teclas
         self.accept("f3", self.toggleWireframe)
-        self.accept("escape", self.callReport, [pointslatlonalt, pointsXY, distancesTerrain, elevationsTerrain])
+        self.accept("escape", self.confirmExit, [pointslatlonalt, pointsXY, distancesTerrain, elevationsTerrain])
+        self.accept("d", self.drawTrajectory, [pointsXYZ])
+
+    def itemSel(self, arg, XYZ, XY, dis, ele):
+        if arg is 'report':
+            self.callReport(XYZ, XY, dis, ele)
+        else:
+            sys.exit()
+
+    def confirmExit(self, XYZ, XY, dis, ele):
+        dialog = DirectDialog(dialogName="test",
+                              text="¿QUE DESEA HACER?",
+                              buttonTextList=['GENERAR REPORTE', 'SALIR'],
+                              buttonValueList=['report', 'exit'],
+                              # buttonSize=(0.1, 0.1, 0.5, 0.5),
+                              topPad=0.1,
+                              midPad=0.1,
+                              sidePad=0.1,
+                              buttonPadSF=1.1,
+                              command=self.itemSel,
+                              extraArgs=[XYZ, XY, dis, ele],
+                              fadeScreen=1
+                              )
 
     def callReport(self, XYZ, XY, dis, ele):
         reporte(ptXYZ=XYZ, ptXY=XY, dis=dis, elev=ele, azimut=self.azimutPlat,
@@ -138,22 +167,37 @@ class ShaderTerrainDemo(ShowBase):
 
     def drawTrajectory(self, points, color=(255, 255, 255, 1)):
         # print(points)
+        # line = LineSegs()
+        # line.setColor(color)
+        # line.setThickness(50)
+
+        # for i, pt in enumerate(points[:-1]):
+        taskMgr.doMethodLater(0.5,
+                              self.drawLine, name='Pintar',
+                              extraArgs=(points, 0)
+                              )
+        #     print(i)
+        # line.moveTo(points[i][1], self.scaleXY - points[i][0], points[i][2])
+        # line.drawTo(points[i + 1][1], self.scaleXY - points[i + 1][0], points[i + 1][2])
+        #
+        # param = line.create()
+        # self.render.attachNewNode(param)
+
+        # time.sleep()
+
+        # return param
+
+    def drawLine(self, points, ind, color=(255, 255, 255, 1)):
+        if len(points) - 1 == ind:
+            return 0
         line = LineSegs()
         line.setColor(color)
         line.setThickness(50)
-
-        for i, pt in enumerate(points[:-1]):
-            line.moveTo(points[i][1], self.scaleXY - points[i][0], points[i][2])
-            line.drawTo(points[i + 1][1], self.scaleXY - points[i + 1][0], points[i + 1][2])
-
+        line.moveTo(points[ind][1], self.scaleXY - points[ind][0], points[ind][2])
+        line.drawTo(points[ind + 1][1], self.scaleXY - points[ind + 1][0], points[ind + 1][2])
         param = line.create()
-        return param
-
-    # def drawLine(self, x0, y0, z0, x1, y1, z1, color=(0, 0, 255, 1)):
-    #     line = LineSegs()
-    #     line.setColor(color)
-    #     line.setThickness(50)
-    #     line.moveTo(x0, y0, z0)
-    #     line.drawTo(x1, y1, z1)
-    #     param = line.create()
-    #     return param
+        self.render.attachNewNode(param)
+        taskMgr.doMethodLater(0.5,
+                              self.drawLine, name='Pintar',
+                              extraArgs=(points, ind + 1)
+                              )

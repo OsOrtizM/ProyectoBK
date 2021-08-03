@@ -129,8 +129,8 @@ def reporte(ptXYZ, ptXY, dis, elev, name, latPlat, lonPlat, latObj, lonObj, azim
     c.drawString(espacePreTable + margen + 275, margen + 343, "ALTURA")
     c.setFont("Helvetica", 10)
     for i, cor in enumerate(ptXYZ):
-        c.drawString(espacePreTable + margen + 10, margen + 332 - (11 * i), str(cor[0]))
-        c.drawString(espacePreTable + margen + 140, margen + 332 - (11 * i), str(cor[1]))
+        c.drawString(espacePreTable + margen + 10, margen + 332 - (11 * i), str(cor[1]))
+        c.drawString(espacePreTable + margen + 140, margen + 332 - (11 * i), str(cor[0]))
         c.drawString(espacePreTable + margen + 270, margen + 332 - (11 * i), str(round(cor[2], 4)))
     c.showPage()
     # /////////////////////////////nueva hoja//////////////////////////////////////
@@ -168,3 +168,6 @@ def reporte(ptXYZ, ptXY, dis, elev, name, latPlat, lonPlat, latObj, lonObj, azim
     c.showPage()
     c.save()
     print('reporte generado')
+    path = "reports/" + name
+    path = os.path.realpath(path)
+    os.startfile(path)

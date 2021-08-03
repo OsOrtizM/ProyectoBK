@@ -7,12 +7,12 @@ from tkinter import ttk, messagebox
 
 from PIL import Image, ImageTk
 
+
 import aplicationV2
 
-# creating tkinter window
+
 root = tk.Tk()
 root.title("EMI")
-# root.option_add('*font', ('verdana', 12, 'bold'))
 root.geometry('500x400')  # 1920x1080
 root.resizable(width=0, height=0)
 
@@ -87,21 +87,21 @@ txtLonObj.place(x=120, y=76)
 
 def ejecutar():
     if txtLatPlatform.get() and txtLonPlatform.get() and txtLatObj.get() \
-            and txtLonObj.get() and txtAzPlatform.get():
+            and txtLonObj.get() and txtAzPlatform.get() or 1:
         print('valido')
-        latitudePlataform = float(txtLatPlatform.get())
-        longitudePlataform = float(txtLonPlatform.get())
-        latitudeObj = float(txtLatObj.get())
-        longitudeObj = float(txtLonObj.get())
-        azimutPlataform = float(txtAzPlatform.get())
-        name = txtNameMisil.get()
+        # latitudePlataform = float(txtLatPlatform.get())
+        # longitudePlataform = float(txtLonPlatform.get())
+        # latitudeObj = float(txtLatObj.get())
+        # longitudeObj = float(txtLonObj.get())
+        # azimutPlataform = float(txtAzPlatform.get())
+        # name = txtNameMisil.get()
         # # longitudePlataform, latitudePlataform = -66.15700687603821, -17.383694116678157         # emi
-        # longitudePlataform, latitudePlataform = -66.13486064219316, -17.38395447862384        # cristo
+        longitudePlataform, latitudePlataform = -66.13486064219316, -17.38395447862384        # cristo
         # # longitudePlataform, latitudePlataform = -66.31072900706361, -17.422539946086463       # calvario
         # # longitudePlataform, latitudePlataform = -66.3917877770738, -17.285657545649716        # tunari
-        # longitudeObj, latitudeObj = -66.15700687603821, -17.383694116678157
-        # azimutPlataform = 180
-        # name = 'Prueba10'
+        longitudeObj, latitudeObj = -66.15700687603821, -17.383694116678157
+        azimutPlataform = 180
+        name = 'Prueba10'
 
         root.withdraw()
         app = aplicationV2.ShaderTerrainDemo(latPlat=latitudePlataform, lonPlat=longitudePlataform, name=name,
